@@ -50,75 +50,31 @@ FILES = [
 
 def dispatcher(files):
     """Stage 1: Dispatch files to S3 upload queue"""
-    # put each file into s3_queue
-    for file in files:
-        time.sleep(random.uniform(0.1, 0.6))
-        print(f"🔖 Dispatcher: dispatching file {file["name"]}")
-        s3_queue.put(file)
+    # TODO: put each file into s3_queue
+    # TODO: send DONE signals (how many?)
+    pass
 
 
 def s3_uploader(name):
     """Stage 2: Copy file S3 → S3 (fast: 0.2-0.5s)"""
-    # get file from s3_queue
-    while True:
-        file = s3_queue.get()
-        if file is DONE:
-            print(f"☑️ Uploader {name} is DONE. Finishing work ... Finished")
-            break
-
-        # simulate S3 copy, add "s3_key" to the file dict
-        time.sleep(random.uniform(0.1, 0.5))
-        print(f"    Uploader {name} copy file {file['name']} S3 -> S3")
-        upload_key = copy_file_s3_s3(file)
-
-        # Update file dict
-        file['dest_key'] = upload_key
-        file['status'] = "S3_COPIED"
-
-        # put result into api_queue
-        api_queue.put(file)
-        print(
-            f"💾 Uploader {name} stored file [{file['name']}] in S3 bucket=[{file['dest_bucket']}] and key=[{file['dest_key']}]")
+    # TODO: get file from s3_queue
+    # TODO: simulate S3 copy, add "s3_key" to the file dict
+    # TODO: put result into api_queue
+    # TODO: handle DONE - what do you forward to api_queue?
+    pass
 
 
 def api_uploader(name):
     """Stage 3: Upload metadata to API (slow: 1-2s)"""
-    # Cet from api_queue
-    while True:
-        file = api_queue.get()
-        if file is DONE:
-            print(f"☑️  - 🔐 API Uploader {name} got DONE signal. Finishing ... Finished ")
-            break
-        # Simulate slow API call
-        time.sleep(random.randint(1, 2))
-        file['status'] = "API_UPLOADED"
-        print(f"🔐 API Uploader: file [{file['name']}] uploaded ! API_UPLOADED")
-        verify_queue.put(file)  # put file into verifier queue so that verifier can check if all correct
+    # TODO: get from api_queue
+    # TODO: simulate slow API call
+    # TODO: handle DONE - how many DONE signals to expect?
+    pass
 
 
 def verifier(expected_count):
     """Collect all processed files, verify all succeeded"""
-    processed = []
-
-    while True:
-        file = verify_queue.get()
-        if file is DONE:
-            break
-        processed.append(file)
-        print(f"✓ Verified: {file['name']} - {file['status']}")
-
-    # Final report
-    success = [f for f in processed if f['status'] == "API_UPLOADED"]
-    failed = [f for f in processed if f['status'] != "API_UPLOADED"]
-
-    print(f"\n=== VERIFICATION REPORT ===")
-    print(f"Expected: {expected_count}")
-    print(f"Processed: {len(processed)}")
-    print(f"Success: {len(success)}")
-    print(f"Failed: {len(failed)}")
-
-    if len(processed) != expected_count:
-        print(f"⚠️  MISSING FILES: {expected_count - len(processed)}")
+    pass
 
 
 # Pseudocode only; Helper function
@@ -151,36 +107,24 @@ s3_workers = ["S3-Worker-1", "S3-Worker-2", "S3-Worker-3"]
 api_workers = ["API-Worker-1", "API-Worker-2"]
 
 # Create threads
-dispatcher_thread = threading.Thread(target=dispatcher, args=(FILES,))
-s3_uploader_threads = [threading.Thread(target=s3_uploader, args=(name,)) for name in s3_workers]
-api_uploader_threads = [threading.Thread(target=api_uploader, args=(name,)) for name in api_workers]
-verifier_thread = threading.Thread(target=verifier, args=(len(FILES),))
+
 
 # Start ALL threads
-for t in [dispatcher_thread] + s3_uploader_threads + api_uploader_threads + [verifier_thread]:
-    t.start()
+
 
 # Wait for dispatcher to finish
-dispatcher_thread.join()
+
 
 # NOW send DONE to s3_queue (dispatcher is done)
-for _ in range(len(s3_workers)):
-    s3_queue.put(DONE)
+
 
 # Wait for S3 workers to finish
-for t in s3_uploader_threads:
-    t.join()
+
 
 # NOW send DONE to api_queue (S3 workers are done)
-for _ in range(len(api_workers)):
-    api_queue.put(DONE)
+
 
 # Wait for API workers to finish
-for t in api_uploader_threads:
-    t.join()
 
-verify_queue.put(DONE)  # only 1 verifier , so only 1 x DONE
-
-verifier_thread.join()
 
 print("\n=== Pipeline complete ===")
