@@ -2,7 +2,7 @@ import queue
 import threading
 import time
 import random
-import uuid
+from uuid import UUID, uuid4
 
 s3_queue = queue.Queue()  # dispatcher → s3 uploaders
 api_queue = queue.Queue()  # s3 uploaders → api uploaders
@@ -92,6 +92,7 @@ def api_uploader(name):
         # Simulate slow API call
         time.sleep(random.randint(1, 2))
         file['status'] = "API_UPLOADED"
+        file['upload_id'] = upload_file_to_api(file)  # Update field with UUID returned from [pseudo] API upload
         print(f"🔐 API Uploader: file [{file['name']}] uploaded ! API_UPLOADED")
         verify_queue.put(file)  # put file into verifier queue so that verifier can check if all correct
 
@@ -139,11 +140,19 @@ def copy_file_s3_s3(file):
 
     # Generate destination key (timestamp + uuid)
     timestamp = time.strftime("%Y/%m/%d/%H/%M/%S")
-    dest_key = f"{timestamp}/{uuid.uuid4()}"
+    dest_key = f"{timestamp}/{uuid4()}"
 
     # In real code: perform actual S3 copy here
 
     return dest_key
+
+
+def upload_file_to_api(file):
+    """ Uploading file metadata to the REST API [pseudocode]"""
+    # In real code: perform actual API upload
+    # Here we are just extracting UUID from the S3 upload key to have the same ID in S3 and in DB (after API upload)
+    file_uuid = UUID(file['dest_key'].rsplit("/", 1)[-1])
+    return file_uuid  # Let's assume the API returned ID of the uploaded file
 
 
 # Workers
