@@ -1,6 +1,6 @@
 # Python Concurrency: Multi-Stage Pipeline with Producer-Consumer Pattern - incl. "Poison Pill" Pattern
 
-A hands-on tutorial demonstrating Python threading, queues, and the Producer-Consumer pattern through a realistic file processing pipeline.
+A hands-on tutorial code demonstrating Python threading, queues, and the Producer-Consumer pattern through a realistic file processing pipeline.
 
 ---
 
