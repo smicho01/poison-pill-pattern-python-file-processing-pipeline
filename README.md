@@ -1,4 +1,4 @@
-# Python Concurrency: Multi-Stage Pipeline with Producer-Consumer Pattern - incl. "Poison Pill" Pattern
+# Python Concurrency: Multi-Stage Pipeline with Producer-Consumer Pattern - incl. "Poison Pill" Pattern 💀
 
 A hands-on tutorial code demonstrating Python threading, queues, and the Producer-Consumer pattern through a realistic file processing pipeline.
 
@@ -293,20 +293,13 @@ Time
 
 ---
 
-## 📚 Further Learning
+## Testing code
 
-### Next Steps
+Install dependencies: `pip install pytest`
 
-1. **ThreadPoolExecutor** — higher-level API for thread pools
-2. **asyncio** — cooperative concurrency (single-threaded, event loop)
-3. **multiprocessing** — true parallelism (bypasses Python's GIL)
-4. **Celery** — distributed task queue for production systems
 
-### Related Patterns
+Run `pytest test_pipeline.py -v`
 
-- **Fan-out/Fan-in** — one producer, many consumers, results aggregated
-- **Pipeline** — chain of processing stages (what we built!)
-- **Work Stealing** — idle workers take from busy workers' queues
 
 ---
 

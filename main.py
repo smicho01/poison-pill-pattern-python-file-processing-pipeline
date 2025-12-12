@@ -53,7 +53,7 @@ def dispatcher(files):
     # put each file into s3_queue
     for file in files:
         time.sleep(random.uniform(0.1, 0.6))
-        print(f"🔖 Dispatcher: dispatching file {file["name"]}")
+        print(f"🔖 Dispatcher: dispatching file {file['name']}")
         s3_queue.put(file)
 
 
