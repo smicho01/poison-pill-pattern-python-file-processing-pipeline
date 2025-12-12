@@ -155,41 +155,46 @@ def upload_file_to_api(file):
     return file_uuid  # Let's assume the API returned ID of the uploaded file
 
 
-# Workers
-s3_workers = ["S3-Worker-1", "S3-Worker-2", "S3-Worker-3"]
-api_workers = ["API-Worker-1", "API-Worker-2"]
+def main():
+    # Workers
+    s3_workers = ["S3-Worker-1", "S3-Worker-2", "S3-Worker-3"]
+    api_workers = ["API-Worker-1", "API-Worker-2"]
 
-# Create threads
-dispatcher_thread = threading.Thread(target=dispatcher, args=(FILES,))
-s3_uploader_threads = [threading.Thread(target=s3_uploader, args=(name,)) for name in s3_workers]
-api_uploader_threads = [threading.Thread(target=api_uploader, args=(name,)) for name in api_workers]
-verifier_thread = threading.Thread(target=verifier, args=(len(FILES),))
+    # Create threads
+    dispatcher_thread = threading.Thread(target=dispatcher, args=(FILES,))
+    s3_uploader_threads = [threading.Thread(target=s3_uploader, args=(name,)) for name in s3_workers]
+    api_uploader_threads = [threading.Thread(target=api_uploader, args=(name,)) for name in api_workers]
+    verifier_thread = threading.Thread(target=verifier, args=(len(FILES),))
 
-# Start ALL threads
-for t in [dispatcher_thread] + s3_uploader_threads + api_uploader_threads + [verifier_thread]:
-    t.start()
+    # Start ALL threads
+    for t in [dispatcher_thread] + s3_uploader_threads + api_uploader_threads + [verifier_thread]:
+        t.start()
 
-# Wait for dispatcher to finish
-dispatcher_thread.join()
+    # Wait for dispatcher to finish
+    dispatcher_thread.join()
 
-# NOW send DONE to s3_queue (dispatcher is done)
-for _ in range(len(s3_workers)):
-    s3_queue.put(DONE)
+    # NOW send DONE to s3_queue (dispatcher is done)
+    for _ in range(len(s3_workers)):
+        s3_queue.put(DONE)
 
-# Wait for S3 workers to finish
-for t in s3_uploader_threads:
-    t.join()
+    # Wait for S3 workers to finish
+    for t in s3_uploader_threads:
+        t.join()
 
-# NOW send DONE to api_queue (S3 workers are done)
-for _ in range(len(api_workers)):
-    api_queue.put(DONE)
+    # NOW send DONE to api_queue (S3 workers are done)
+    for _ in range(len(api_workers)):
+        api_queue.put(DONE)
 
-# Wait for API workers to finish
-for t in api_uploader_threads:
-    t.join()
+    # Wait for API workers to finish
+    for t in api_uploader_threads:
+        t.join()
 
-verify_queue.put(DONE)  # only 1 verifier , so only 1 x DONE
+    verify_queue.put(DONE)  # only 1 verifier , so only 1 x DONE
 
-verifier_thread.join()
+    verifier_thread.join()
 
-print("\n=== Pipeline complete ===")
+    print("\n=== Pipeline complete ===")
+
+
+if __name__ == "__main__":
+    main()
